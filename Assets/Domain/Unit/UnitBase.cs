@@ -8,7 +8,7 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable
     [SerializeField]
     public MovementController UnitMovementHandler;
 
-    public UnitBaseStats UnitStats;
+    public UnitBaseStats UnitStats { get; set; }
  
     private UnitRuntimeStats UnitRuntimeStats;
 
