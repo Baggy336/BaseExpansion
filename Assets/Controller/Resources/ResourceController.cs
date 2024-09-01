@@ -12,7 +12,7 @@ namespace Assets.Controller.Resources
         [SerializeField]
         private List<ResourceNodeRuntime> ResourceNodesRuntimeStats;
 
-        private HarvestResourceEvent OnResourceHarvest { get; set; }
+        public HarvestResourceEvent OnResourceHarvest { get; set; }
 
         public void Awake()
         {

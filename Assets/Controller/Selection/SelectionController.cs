@@ -1,4 +1,5 @@
-﻿using Domain.Globals;
+﻿using Assets.Domain.Interfaces;
+using Domain.Globals;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,9 +14,9 @@ namespace Assets.Controller.Selection
         public LayerMask GroundLayer;
 
         [SerializeField]
-        public List<GameObject> SelectableObjects;
+        public List<MonoBehaviour> SelectableObjects;
 
-        public List<GameObject> SelectedObjects { get; set; } = new List<GameObject>();
+        public List<ISelectable> SelectedObjects { get; set; } = new List<ISelectable>();
 
         private LayerMask combinedLayerMasks { get; set; }
 
@@ -61,7 +62,7 @@ namespace Assets.Controller.Selection
             {
                 dragStartPosition = Input.mousePosition;
 
-                if (HitSomethingInteractable(out GameObject hitObject))
+                if (HitSomethingInteractable(out ISelectable hitObject))
                 {
                     SelectObject(hitObject);
                 }
@@ -82,7 +83,7 @@ namespace Assets.Controller.Selection
             }
         }
 
-        private bool HitSomethingInteractable(out GameObject hitObject)
+        private bool HitSomethingInteractable(out ISelectable hitObject)
         {
             Ray ray = Camera.main.ScreenPointToRay(dragStartPosition);
             RaycastHit hit;
@@ -91,9 +92,10 @@ namespace Assets.Controller.Selection
 
             if (Physics.Raycast(ray, out hit, 100, combinedLayerMasks))
             {
-                if (LayerIsInteractable(hit.collider.gameObject) && ObjectIsSelectable(hit.collider.gameObject))
+                ISelectable selectable = hit.collider.GetComponent<ISelectable>(); // TODO: Change this
+                if (LayerIsInteractable(hit.collider.gameObject) && selectable != null)
                 {
-                    hitObject = hit.collider.gameObject;
+                    hitObject = selectable;
                     return true;
                 }
             }
@@ -106,12 +108,7 @@ namespace Assets.Controller.Selection
             return (combinedLayerMasks == (combinedLayerMasks | (1 << obj.layer)));
         }
 
-        private bool ObjectIsSelectable(GameObject hitObject)
-        {
-            return SelectableObjects.Contains(hitObject);
-        }
-
-        private void SelectObject(GameObject hitObject)
+        private void SelectObject(ISelectable hitObject)
         {
             if (!Input.GetKey(KeyCode.LeftShift))
             {
@@ -130,24 +127,26 @@ namespace Assets.Controller.Selection
                 DeselectAll();
             }
 
-            foreach (GameObject obj in SelectableObjects)
+            foreach (MonoBehaviour obj in SelectableObjects)
             {
-                if (ObjectIsWithinSelectionBounds(obj, dragSelectionRect) && LayerIsInteractable(obj))
+                ISelectable selectable = obj as ISelectable;
+                if (ObjectIsWithinSelectionBounds(selectable, dragSelectionRect) && LayerIsInteractable(obj.gameObject))
                 {
-                    if (!SelectedObjects.Contains(obj))
+                    if (!ObjectExistsInSelection(selectable))
                     {
-                        SelectedObjects.Add(obj);
+                        SelectedObjects.Add(selectable);
                     }
                 }
             }
         }
-        private bool ObjectIsWithinSelectionBounds(GameObject obj, Rect selectionRect)
+
+        private bool ObjectIsWithinSelectionBounds(ISelectable obj, Rect selectionRect)
         {
-            Vector3 screenPosition = Camera.main.WorldToScreenPoint(obj.transform.position);
+            Vector3 screenPosition = Camera.main.WorldToScreenPoint((obj as MonoBehaviour).transform.position); // TODO: Change this
             return selectionRect.Contains(screenPosition);
         }
 
-        private bool ObjectExistsInSelection(GameObject selectedObject)
+        private bool ObjectExistsInSelection(ISelectable selectedObject)
         {
             return SelectedObjects.Contains(selectedObject);
         }

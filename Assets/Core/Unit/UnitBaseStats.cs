@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewUnitBaseStats", menuName = "Unit")]
 public class UnitBaseStats : ScriptableObject
 {
     public string UnitName;
@@ -10,4 +9,12 @@ public class UnitBaseStats : ScriptableObject
     public int Armor;
 
     public float MovementSpeed;
+
+    public int AttackDamage;
+
+    public float AttackRange;
+
+    public float AttackInterval;
+
+    public float RotationSpeed;
 }

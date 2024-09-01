@@ -1,4 +1,5 @@
 ﻿using Assets.Core.Resources;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Domain.Resources
@@ -8,7 +9,10 @@ namespace Assets.Domain.Resources
         [SerializeField]
         public ResourceNode ResourceNodeBase;
 
-        public int AvailableResources { get; set; }
+        [SerializeField]
+        public List<Transform> ResourceHarvestPoints = new List<Transform>();
+
+        public int AvailableResources;
 
         public void Start()
         {
@@ -24,10 +28,16 @@ namespace Assets.Domain.Resources
         {
             AvailableResources -= amount;
         }
-
+        
         public bool IsDepleted()
         {
             return AvailableResources <= 0;
+        }
+
+        public Vector3 GetAvailableHarvestPoint()
+        {
+            int randomPoint = Random.Range(0, ResourceHarvestPoints.Count);
+            return ResourceHarvestPoints[randomPoint].position;
         }
     }
 }
