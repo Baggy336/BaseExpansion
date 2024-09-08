@@ -1,13 +1,7 @@
-using UnityEngine;
+using Assets.Core;
 
-public class UnitBaseStats : ScriptableObject
+public class UnitBaseStats : BaseStats
 {
-    public string UnitName;
-
-    public int Health;
-
-    public int Armor;
-
     public float MovementSpeed;
 
     public int AttackDamage;

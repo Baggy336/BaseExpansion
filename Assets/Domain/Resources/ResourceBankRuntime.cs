@@ -23,5 +23,10 @@ namespace Assets.Domain.Resources
         {
             ResourceStoredAmount -= amountToTake;
         }
+        
+        public void DepositAmount(int amountToTake)
+        {
+            ResourceStoredAmount += amountToTake;
+        }
     }
 }

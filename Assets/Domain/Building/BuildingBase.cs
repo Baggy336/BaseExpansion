@@ -1,0 +1,36 @@
+﻿using Assets.Controller.Selection;
+using Assets.Controller.Unit;
+using Assets.Core.Building;
+using Assets.Domain.Interfaces;
+using UnityEngine;
+
+namespace Assets.Domain.Building
+{
+    public class BuildingBase : MonoBehaviour, ISelectable, IAttackable
+    {
+        [SerializeField]
+        public SelectionController SelectionHandler;
+
+        public BuildingBaseStats BuildingStats { get; set; }
+
+        private BuildingRuntimeStats BuildingRuntimeStats { get; set; }
+
+        public HealthController HealthHandler;
+
+        public virtual void Awake()
+        {
+            HealthHandler = new HealthController();
+            BuildingRuntimeStats = new BuildingRuntimeStats(BuildingStats);
+        }
+
+        public virtual void TakeDamage(int amount)
+        {
+            HealthHandler.TakeFromHealthPool(BuildingRuntimeStats, amount);
+            if (BuildingRuntimeStats.Health <= 0)
+            {
+                SelectionHandler.RemoveSelectableObject(this);
+                Destroy(gameObject);
+            }
+        }
+    }
+}

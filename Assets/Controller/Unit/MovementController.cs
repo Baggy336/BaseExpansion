@@ -18,12 +18,6 @@ namespace Assets.Controller.Unit
 
         private float RotationSpeed { get; set; }
 
-        private void Update()
-        {
-            MoveTo(MovementDestination);
-            RotateTo(RotationDestination);
-        }
-
         public void SetMovementSpeed(float movementSpeed)
         {
             MovementSpeed = movementSpeed;
@@ -34,14 +28,14 @@ namespace Assets.Controller.Unit
             RotationSpeed = rotationSpeed;
         }
 
-        public void MoveTo(Vector3 destination)
+        public void MoveTo()
         {
-            transform.position = Vector3.MoveTowards(transform.position, destination, MovementSpeed * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, MovementDestination, MovementSpeed * Time.deltaTime);
         }
 
-        private void RotateTo(Quaternion destination)
+        public void RotateTo()
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, destination, RotationSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, RotationDestination, RotationSpeed * Time.deltaTime);
         }
 
         private void StopMovement()
@@ -98,6 +92,12 @@ namespace Assets.Controller.Unit
             }
 
             return rotateDirection;
+        }
+
+        public bool AtTargetLocation(float tolerance = 0.3f)
+        {
+            return Mathf.Abs(transform.position.x - MovementDestination.x) <= tolerance &&
+                   Mathf.Abs(transform.position.z - MovementDestination.z) <= tolerance;
         }
     }
 }

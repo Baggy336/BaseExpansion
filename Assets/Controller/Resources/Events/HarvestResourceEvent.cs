@@ -3,5 +3,5 @@ using UnityEngine.Events;
 
 namespace Assets.Controller.Resources.Events
 {
-    public class HarvestResourceEvent : UnityEvent<ResourceNodeRuntime, int>{ }
+    public class HarvestResourceEvent : UnityEvent<ResourceNodeRuntime, int> { }
 }

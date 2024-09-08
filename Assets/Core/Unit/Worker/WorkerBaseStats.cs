@@ -6,7 +6,11 @@ namespace Assets.Core.Unit
     public class WorkerBaseStats : UnitBaseStats
     {
         public int CarryCapacity;
+
         public int HarvestYield;
+
         public float HarvestInterval;
+
+        public float HarvestDistance;
     }
 }

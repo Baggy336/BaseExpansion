@@ -1,9 +1,7 @@
 ﻿namespace Assets.Domain.Unit
 {
-    public class UnitRuntimeStats
+    public class UnitRuntimeStats : RuntimeStats
     {
-        public int Health { get; set; }
-        public int Armor { get; set; }
         public float MovementSpeed { get; set; }
         public int AttackDamage { get; set; }
         public float AttackRange { get; set; }
@@ -14,6 +12,7 @@
         {
             Health = baseStats.Health;
             Armor = baseStats.Armor;
+            Name = baseStats.Name;
             MovementSpeed = baseStats.MovementSpeed;
             AttackDamage = baseStats.AttackDamage;
             AttackRange = baseStats.AttackRange;

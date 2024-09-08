@@ -155,5 +155,22 @@ namespace Assets.Controller.Selection
         {
             SelectedObjects.Clear();
         }
+
+        public void RemoveSelectableObject(ISelectable selectable)
+        {
+            SelectableObjects.Remove(selectable as MonoBehaviour);
+            if(SelectedObjects.Contains(selectable))
+            {
+                SelectedObjects.Remove(selectable);
+            }
+        }
+
+        public void AddSelectableToList(ISelectable selectable)
+        {
+            if(!SelectableObjects.Contains(selectable as MonoBehaviour))
+            {
+                SelectableObjects.Add(selectable as MonoBehaviour);
+            }
+        }
     }
 }
