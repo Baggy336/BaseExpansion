@@ -140,9 +140,13 @@ namespace Assets.Domain.Unit.PlayerUnits
             {
                 if (((1 << hitCollider.gameObject.layer) & DepotLayer) != 0)
                 {
-                    depotHit = true;
-                    HandleSelectedDepot(hitCollider);
-                    return true;
+                    ResourceDepot depot = hitCollider.gameObject.GetComponent<ResourceDepot>();
+                    if (SelectionHandler.SelectableObjects.Contains(depot))
+                    {
+                        depotHit = true;
+                        HandleSelectedDepot(hitCollider);
+                        return true;
+                    }
                 }
             }
 
@@ -227,12 +231,15 @@ namespace Assets.Domain.Unit.PlayerUnits
 
             foreach (ResourceDepot depot in availableDepots)
             {
-                float distanceToDepot = Vector3.Distance(depot.transform.position, transform.position);
-
-                if (distanceToDepot < nearestDistance)
+                if(SelectionHandler.SelectableObjects.Contains(depot))
                 {
-                    nearestDistance = distanceToDepot;
-                    SelectedResourceDepot = depot;
+                    float distanceToDepot = Vector3.Distance(depot.transform.position, transform.position);
+
+                    if (distanceToDepot < nearestDistance)
+                    {
+                        nearestDistance = distanceToDepot;
+                        SelectedResourceDepot = depot;
+                    }
                 }
             }
         }

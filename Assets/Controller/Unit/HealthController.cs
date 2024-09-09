@@ -1,5 +1,4 @@
 ﻿using Assets.Domain;
-using UnityEngine;
 
 namespace Assets.Controller.Unit
 {

@@ -1,5 +1,6 @@
 using Assets.Controller.Selection;
 using Assets.Controller.Unit;
+using Assets.Controller.Unit.UI;
 using Assets.Domain.Globals.Enums;
 using Assets.Domain.Interfaces;
 using Assets.Domain.Unit;
@@ -15,6 +16,9 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
 
     [SerializeField]
     private AttackController AttackHandler;
+
+    [SerializeField]
+    private HealthUIController HealthUIHandler;
 
     public HealthController HealthHandler;
     public UnitBaseStats UnitStats { get; set; }
@@ -156,6 +160,7 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
     public virtual void TakeDamage(int amount)
     {
         HealthHandler.TakeFromHealthPool(UnitRuntimeStats, amount);
+        HealthUIHandler.UpdateHealthBar(UnitRuntimeStats.Health);
         if (UnitRuntimeStats.Health <= 0)
         {
             SelectionHandler.RemoveSelectableObject(this);
@@ -166,5 +171,6 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
     public virtual void Heal(int amount)
     {
         HealthHandler.AddToHealthPool(UnitRuntimeStats, amount);
+        HealthUIHandler.UpdateHealthBar(UnitRuntimeStats.Health);
     }
 }

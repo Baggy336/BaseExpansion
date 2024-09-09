@@ -14,34 +14,60 @@ namespace Assets.Controller.Unit
 
         private float TimeSinceLastAttack { get; set; }
 
-        public AttackController(UnitRuntimeStats unitStats)
+        private float ObjectRadius { get; set; }
+
+        private float AttackTargetRadius { get; set; }
+
+        private void Awake()
         {
-            UnitStats = unitStats;
+            ObjectRadius = GetComponent<Collider>().bounds.extents.x;
         }
 
         public void Update()
         {
             TimeSinceLastAttack += Time.deltaTime;
+
+            if (AttackTarget != null && WithinAttackDistance() && WithinAttackInterval())
+            {
+                DealDamageToTarget();
+            }
         }
 
         public void SetAttackTarget(IAttackable attackable)
         {
+            MonoBehaviour attackableObject = (attackable as MonoBehaviour);
             AttackTarget = attackable;
-            AttackTargetLocation = (attackable as MonoBehaviour).transform;
+            AttackTargetLocation = attackableObject.transform;
+            AttackTargetRadius = attackableObject.GetComponent<Collider>().bounds.extents.x;
         }
 
         public void ClearAttackTarget()
         {
             AttackTarget = null;
             AttackTargetLocation = null;
+            AttackTargetRadius = 0f;
         }
 
         public Vector3 GetAttackPosition()
         {
-            if(AttackTargetLocation != null)
+            if (AttackTargetLocation != null)
             {
                 Vector3 directionToTarget = (AttackTargetLocation.position - transform.position).normalized;
-                return AttackTargetLocation.position - directionToTarget * UnitStats.AttackRange;
+                float combinedRadii = ObjectRadius + AttackTargetRadius;
+                float desiredDistance = UnitStats.AttackRange + combinedRadii;
+                float distanceToTarget = Vector3.Distance(transform.position, AttackTargetLocation.position);
+
+                Debug.Log($"ObjectRadius: {ObjectRadius}, AttackTargetRadius: {AttackTargetRadius}, AttackRange: {UnitStats.AttackRange}");
+                Debug.Log($"Distance to Target: {distanceToTarget}, Desired Distance: {desiredDistance}");
+
+                if (distanceToTarget > desiredDistance)
+                {
+                    return transform.position + directionToTarget * (distanceToTarget - desiredDistance);
+                }
+                else
+                {
+                    return transform.position;
+                }
             }
             return transform.position;
         }
@@ -50,7 +76,11 @@ namespace Assets.Controller.Unit
         {
             if (AttackTargetLocation != null)
             {
-                return Vector3.Distance(AttackTargetLocation.position, transform.position) <= UnitStats.AttackRange;
+                float distanceBetweenCenters = Vector3.Distance(AttackTargetLocation.position, transform.position);
+                float combinedRadii = ObjectRadius + AttackTargetRadius;
+                float attackDistance = UnitStats.AttackRange + combinedRadii;
+
+                return distanceBetweenCenters <= attackDistance;
             }
             return false;
         }
@@ -62,8 +92,11 @@ namespace Assets.Controller.Unit
 
         public void DealDamageToTarget()
         {
-            AttackTarget.TakeDamage(UnitStats.AttackDamage);
-            TimeSinceLastAttack = 0f;
+            if (AttackTarget != null)
+            {
+                AttackTarget.TakeDamage(UnitStats.AttackDamage);
+                TimeSinceLastAttack = 0f;
+            }
         }
     }
 }

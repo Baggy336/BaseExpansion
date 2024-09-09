@@ -17,7 +17,7 @@ MonoBehaviour:
   Armor: 2
   MovementSpeed: 5
   AttackDamage: 10
-  AttackRange: 1
+  AttackRange: 0.5
   AttackInterval: 0.8
   RotationSpeed: 360
   CarryCapacity: 50
