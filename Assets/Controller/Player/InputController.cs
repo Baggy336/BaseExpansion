@@ -14,9 +14,12 @@ namespace Assets.Controller.Player
 
         public Action<Vector3> IssuedMovementCommand { get; set; }
 
+        public Action<KeyCode> IssuedKeycodeCommand { get; set; }
+
         public void Update()
         {
             CheckMovementInput();
+            CheckKeyInput();
         }
 
         private void CheckMovementInput()
@@ -32,9 +35,21 @@ namespace Assets.Controller.Player
             }
         }
 
-        private void IssueMovementCommand(Vector3 destination)
+        private void IssueMovementCommand(Vector3 destination) => IssuedMovementCommand?.Invoke(destination);
+
+        private void CheckKeyInput()
         {
-            IssuedMovementCommand?.Invoke(destination);
+            if (Input.anyKeyDown)
+            {
+                string inputString = Input.inputString;
+                if (!string.IsNullOrEmpty(inputString))
+                {
+                    KeyCode pressedKey = (KeyCode)Enum.Parse(typeof(KeyCode), inputString.ToUpper());
+                    IssueKeycodeCommand(pressedKey);
+                }
+            }
         }
+
+        private void IssueKeycodeCommand(KeyCode key) => IssuedKeycodeCommand?.Invoke(key);
     }
 }

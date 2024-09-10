@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         InputController.IssuedMovementCommand += MoveSelectedUnits;
+        InputController.IssuedKeycodeCommand += CheckKeyInputOnSelections;
     }
 
     private void MoveSelectedUnits(Vector3 destination)
@@ -30,9 +31,21 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    
+    private void CheckKeyInputOnSelections(KeyCode pressedKey)
+    {
+        foreach(ISelectable selectable in SelectionController.SelectedObjects)
+        {
+            if(selectable is IConstruction constructionObject)
+            {
+                constructionObject.CheckConstructionHotkey(pressedKey);
+            }
+        }
+    }
 
     private void OnDestroy()
     {
         InputController.IssuedMovementCommand -= MoveSelectedUnits;
+        InputController.IssuedKeycodeCommand -= CheckKeyInputOnSelections;
     }
 }

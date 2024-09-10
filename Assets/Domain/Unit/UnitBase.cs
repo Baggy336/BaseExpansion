@@ -12,9 +12,6 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
     public MovementController UnitMovementHandler;
 
     [SerializeField]
-    public SelectionController SelectionHandler;
-
-    [SerializeField]
     private AttackController AttackHandler;
 
     [SerializeField]
@@ -25,6 +22,10 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
 
     private UnitRuntimeStats UnitRuntimeStats;
 
+    private PlayerController OwnerPlayer { get; set; }
+
+    public SelectionController SelectionHandler { get; set; }
+
     private UnitStates UnitState;
 
     public virtual void Awake()
@@ -33,6 +34,12 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
         UnitRuntimeStats = new UnitRuntimeStats(UnitStats);
         HealthHandler = new HealthController();
         AttackHandler.UnitStats = new UnitRuntimeStats(UnitStats);
+    }
+
+    public virtual void Initialize(PlayerController player)
+    {
+        OwnerPlayer = player;
+        SelectionHandler = player.GetComponent<SelectionController>();
         SelectionHandler.AddSelectableToList(this);
     }
 

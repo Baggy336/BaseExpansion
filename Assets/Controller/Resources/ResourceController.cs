@@ -1,6 +1,7 @@
 ﻿using Assets.Controller.Resources.Events;
 using Assets.Domain.Resources;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Controller.Resources
@@ -9,7 +10,6 @@ namespace Assets.Controller.Resources
     {
         public static ResourceController Instance { get; private set; }
 
-        [SerializeField]
         private List<ResourceNodeRuntime> ResourceNodesRuntimeStats;
 
         public HarvestResourceEvent OnResourceHarvest { get; set; }
@@ -30,6 +30,7 @@ namespace Assets.Controller.Resources
         public void Start()
         {
             SetUpHarvestEvent();
+            ResourceNodesRuntimeStats = FindObjectsOfType<ResourceNodeRuntime>().ToList();
         }
 
         private void SetUpHarvestEvent()

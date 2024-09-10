@@ -14,9 +14,6 @@ namespace Assets.Domain.Unit.PlayerUnits
         public LayerMask ResourceLayer;
 
         [SerializeField]
-        public LayerMask DepotLayer;
-
-        [SerializeField]
         public WorkerBaseStats WorkerStats;
 
         private ResourceNodeRuntime TargetResourceNode { get; set; }
@@ -138,15 +135,12 @@ namespace Assets.Domain.Unit.PlayerUnits
             Collider[] hitColliders = Physics.OverlapSphere(location, 1f);
             foreach (Collider hitCollider in hitColliders)
             {
-                if (((1 << hitCollider.gameObject.layer) & DepotLayer) != 0)
+                ResourceDepot depot = hitCollider.gameObject.GetComponent<ResourceDepot>();
+                if (SelectionHandler.SelectableObjects.Contains(depot))
                 {
-                    ResourceDepot depot = hitCollider.gameObject.GetComponent<ResourceDepot>();
-                    if (SelectionHandler.SelectableObjects.Contains(depot))
-                    {
-                        depotHit = true;
-                        HandleSelectedDepot(hitCollider);
-                        return true;
-                    }
+                    depotHit = true;
+                    HandleSelectedDepot(hitCollider);
+                    return true;
                 }
             }
 
@@ -231,7 +225,7 @@ namespace Assets.Domain.Unit.PlayerUnits
 
             foreach (ResourceDepot depot in availableDepots)
             {
-                if(SelectionHandler.SelectableObjects.Contains(depot))
+                if (SelectionHandler.SelectableObjects.Contains(depot))
                 {
                     float distanceToDepot = Vector3.Distance(depot.transform.position, transform.position);
 

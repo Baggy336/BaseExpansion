@@ -1,20 +1,16 @@
 ﻿using Assets.Core.Building.Economy;
-using Assets.Domain.Player;
 using Assets.Domain.Resources.Enums;
 using UnityEngine;
 
 namespace Assets.Domain.Building.Economy
 {
-    public class ResourceDepot : BuildingBase
+    public class ResourceDepot : ProductionBuildingBase
     {
         [SerializeField]
         public ResourceDepotBaseStats ResourceDepotStats;
 
         [SerializeField]
         public Transform DepositLocation;
-
-        [SerializeField]
-        public PlayerBankRuntime PlayerBank;
 
         public override void Awake()
         {

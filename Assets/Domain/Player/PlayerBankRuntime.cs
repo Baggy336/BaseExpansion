@@ -43,18 +43,28 @@ namespace Assets.Domain.Player
             }
         }
 
-        public void WithdrawResource(ResourceTypes resourceType, int amount)
+        public bool TryWithdrawResource(List<ResourceCost> cost)
         {
-            ResourceBankRuntime resourceBank = BankedResourcesRuntime.Where(x => x.ResourceType == resourceType).FirstOrDefault();
-
-            if (resourceBank != null)
+            foreach (ResourceCost resourceCost in cost)
             {
-                if (resourceBank.HasEnoughResources(amount))
+                ResourceBankRuntime resourceBank = BankedResourcesRuntime.FirstOrDefault(x => x.ResourceType == resourceCost.ResourceType);
+                if (resourceBank == null || !resourceBank.HasEnoughResources(resourceCost.Cost))
                 {
-                    resourceBank.WithrawAmount(amount);
+                    return false;
+                }
+            }
+
+            foreach (ResourceCost resourceCost in cost)
+            {
+                ResourceBankRuntime resourceBank = BankedResourcesRuntime.FirstOrDefault(x => x.ResourceType == resourceCost.ResourceType);
+                if (resourceBank != null)
+                {
+                    resourceBank.WithrawAmount(resourceCost.Cost);
                     UpdateUIAmount(resourceBank);
                 }
             }
+
+            return true;
         }
 
         public void DepositResource(ResourceTypes resourceType, int amount)
