@@ -1,8 +1,8 @@
-﻿using Assets.Controller.Building.UI;
+﻿using Assets.Controller;
+using Assets.Controller.Building.UI;
 using Assets.Core;
 using Assets.Domain.Interfaces;
 using Assets.Domain.Player;
-using Assets.Domain.Unit;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,13 +23,7 @@ namespace Assets.Domain.Building.Economy
         public Transform ConstructionLocation;
 
         [SerializeField]
-        public PlayerController OwnerPlayer;
-
-        [SerializeField]
         public int ConstructionQueueMaxLength = 4;
-
-        [SerializeField]
-        private UnitFactory UnitFactory;
 
         private Queue<ConstructionCost> QueuedConstruction { get; set; } = new Queue<ConstructionCost>();
 
@@ -66,7 +60,8 @@ namespace Assets.Domain.Building.Economy
         private void BuildObjectFromQueue()
         {
             ConstructionCost task = QueuedConstruction.Dequeue();
-            UnitFactory.CreateUnit(task.ConstructedObject, ConstructionLocation.position, OwnerPlayer);
+            GameObject newObject = Instantiate(task.ConstructedObject, ConstructionLocation.position, Quaternion.identity);
+            GameController.Instance.GetPlayerEventSystem(OwnerPlayer).InvokeSelectableCreated(newObject.GetComponent<ISelectable>(), OwnerPlayer);
 
             if (QueuedConstruction.Count > 0)
             {

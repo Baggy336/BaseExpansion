@@ -697,6 +697,7 @@ GameObject:
   - component: {fileID: 513894896}
   - component: {fileID: 513894895}
   - component: {fileID: 513894897}
+  - component: {fileID: 513894898}
   m_Layer: 7
   m_Name: PlayerOne
   m_TagString: Untagged
@@ -734,6 +735,7 @@ MonoBehaviour:
   PlayerBank: {fileID: 513894896}
   SelectionController: {fileID: 513894895}
   InputController: {fileID: 513894897}
+  CommandManager: {fileID: 513894898}
 --- !u!114 &513894895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -746,15 +748,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b0c0c398fa034c4cb7701b676c852e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SelectableLayers:
-  - serializedVersion: 2
-    m_Bits: 256
-  - serializedVersion: 2
-    m_Bits: 128
-  GroundLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  SelectableObjects:
+  SelectableMonobehaviors:
   - {fileID: 1173909513}
 --- !u!114 &513894896
 MonoBehaviour:
@@ -785,7 +779,26 @@ MonoBehaviour:
   GroundLayer:
     serializedVersion: 2
     m_Bits: 64
-  MovementButton: 1
+  RightClick: 1
+  LeftClick: 0
+  DragThreshold: 5
+--- !u!114 &513894898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513894892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c4ad794e5f1c214081153082aaa8299, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OverlapRadius: 1
+  SelectionManager: {fileID: 513894895}
+  GroundLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &527794303
 GameObject:
   m_ObjectHideFlags: 0
@@ -816,6 +829,52 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 963615297}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &659698813
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 659698815}
+  - component: {fileID: 659698814}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &659698814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659698813}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfc150755369b1f4b812c91d729526c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlayersToRegister:
+  - {fileID: 513894894}
+--- !u!4 &659698815
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659698813}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -5.630167, y: 13.256804, z: -11.334206}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &671422199
 GameObject:
@@ -1675,7 +1734,6 @@ GameObject:
   - component: {fileID: 1173909513}
   - component: {fileID: 1173909518}
   - component: {fileID: 1173909519}
-  - component: {fileID: 1173909520}
   m_Layer: 8
   m_Name: ResourceDepot
   m_TagString: Untagged
@@ -1695,16 +1753,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb110ab1faf5cf144b262ae65da08426, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SelectionHandler: {fileID: 513894895}
   HealthUIHandler: {fileID: 1173909518}
+  _ownerPlayer: {fileID: 513894894}
   BuildableObjects:
   - {fileID: 11400000, guid: 9a51bf0acd18ab14290d855d01e7ec77, type: 2}
   PlayerBank: {fileID: 513894896}
   ProductionUI: {fileID: 1173909519}
   ConstructionLocation: {fileID: 2113226978}
-  OwnerPlayer: {fileID: 513894894}
   ConstructionQueueMaxLength: 4
-  UnitFactory: {fileID: 1173909520}
   ResourceDepotStats: {fileID: 11400000, guid: adf75f25690c28e4da094240cd85eead, type: 2}
   DepositLocation: {fileID: 1199529173}
 --- !u!65 &1173909514
@@ -1826,18 +1882,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ProductionProgressBar: {fileID: 461722623}
   ProductionProgressBarBackground: {fileID: 2001985446}
---- !u!114 &1173909520
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1173909512}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cbd8689bbf5fc4b41b4bf204d6d63812, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1184224795
 GameObject:
   m_ObjectHideFlags: 0
@@ -3404,3 +3448,4 @@ SceneRoots:
   - {fileID: 671422201}
   - {fileID: 151137584}
   - {fileID: 1173909517}
+  - {fileID: 659698815}

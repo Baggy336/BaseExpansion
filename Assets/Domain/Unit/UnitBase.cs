@@ -1,4 +1,3 @@
-using Assets.Controller.Selection;
 using Assets.Controller.Unit;
 using Assets.Controller.Unit.UI;
 using Assets.Domain.Globals.Enums;
@@ -6,7 +5,7 @@ using Assets.Domain.Interfaces;
 using Assets.Domain.Unit;
 using UnityEngine;
 
-public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttackable
+public abstract class UnitBase : MonoBehaviour, IMoveable, ICombatAble, IAttackable
 {
     [SerializeField]
     public MovementController UnitMovementHandler;
@@ -22,9 +21,7 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
 
     private UnitRuntimeStats UnitRuntimeStats;
 
-    private PlayerController OwnerPlayer { get; set; }
-
-    public SelectionController SelectionHandler { get; set; }
+    public PlayerController OwnerPlayer { get; set; }
 
     private UnitStates UnitState;
 
@@ -34,13 +31,6 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
         UnitRuntimeStats = new UnitRuntimeStats(UnitStats);
         HealthHandler = new HealthController();
         AttackHandler.UnitStats = new UnitRuntimeStats(UnitStats);
-    }
-
-    public virtual void Initialize(PlayerController player)
-    {
-        OwnerPlayer = player;
-        SelectionHandler = player.GetComponent<SelectionController>();
-        SelectionHandler.AddSelectableToList(this);
     }
 
     public virtual void Update()
@@ -105,19 +95,11 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
 
     public virtual void MoveToLocation(Vector3 location)
     {
-        if (HitSomethingAttackable(location, out IAttackable attackableTarget))
+        if(AttackHandler.AttackTarget != null)
         {
-            SetAttackTarget(attackableTarget);
-            UnitState = UnitStates.Attacking;
+            AttackHandler.ClearAttackTarget();
         }
-        else
-        {
-            if(AttackHandler.AttackTarget != null)
-            {
-                AttackHandler.ClearAttackTarget();
-            }
-            UnitState = UnitStates.Moving;
-        }
+        UnitState = UnitStates.Moving;
 
         SetMovementValues(location);
     }
@@ -129,48 +111,13 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
         UnitMovementHandler.HandleMovement(location);
     }
 
-    private bool HitSomethingAttackable(Vector3 location, out IAttackable attackableTarget)
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(location, 1f);
-        foreach (Collider hitCollider in hitColliders)
-        {
-            if (hitCollider.gameObject != null && hitCollider.gameObject != this.gameObject)
-            {
-                IAttackable attackable = hitCollider.gameObject.GetComponent<IAttackable>();
-                ISelectable selectable = hitCollider.gameObject.GetComponent<ISelectable>();
-
-                if (selectable != null)
-                {
-                    if (SelectionHandler.SelectableObjects.Contains(selectable as MonoBehaviour))
-                    {
-                        attackableTarget = null;
-                        return false;
-                    }
-                }
-
-                if (attackable != null)
-                {
-                    attackableTarget = attackable;
-                    return true;
-                }
-            }
-        }
-        attackableTarget = null;
-        return false;
-    }
-
-    private void SetAttackTarget(IAttackable attackableTarget)
-    {
-        AttackHandler.SetAttackTarget(attackableTarget);
-    }
-
     public virtual void TakeDamage(int amount)
     {
         HealthHandler.TakeFromHealthPool(UnitRuntimeStats, amount);
         HealthUIHandler.UpdateHealthBar(UnitRuntimeStats.Health);
         if (UnitRuntimeStats.Health <= 0)
         {
-            SelectionHandler.RemoveSelectableObject(this);
+            //SelectionHandler.RemoveSelectableObject(this); TODO: Deregister
             Destroy(gameObject);
         }
     }
@@ -179,5 +126,15 @@ public abstract class UnitBase : MonoBehaviour, IMoveable, ISelectable, IAttacka
     {
         HealthHandler.AddToHealthPool(UnitRuntimeStats, amount);
         HealthUIHandler.UpdateHealthBar(UnitRuntimeStats.Health);
+    }
+
+    public void SetAttackTarget(IAttackable target)
+    {
+        AttackHandler.SetAttackTarget(target);
+    }
+
+    public void SetPlayerReference(PlayerController player)
+    {
+        OwnerPlayer = player;
     }
 }

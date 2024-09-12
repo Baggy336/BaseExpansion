@@ -16,5 +16,5 @@ MonoBehaviour:
   - ResourceType: 1
     Cost: 100
   ConstructedObject: {fileID: 6249633520542022199, guid: 3b0a39dcc23ed6c42a35118a31cf2d69, type: 3}
-  ConstructionTime: 20
+  ConstructionTime: 2
   Hotkey: 101

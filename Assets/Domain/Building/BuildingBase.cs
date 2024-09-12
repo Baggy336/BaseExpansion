@@ -10,19 +10,22 @@ namespace Assets.Domain.Building
     public class BuildingBase : MonoBehaviour, ISelectable, IAttackable
     {
         [SerializeField]
-        public SelectionController SelectionHandler;
-        
-        [SerializeField]
         public HealthUIController HealthUIHandler;
 
         public BuildingBaseStats BuildingStats { get; set; }
 
         private BuildingRuntimeStats BuildingRuntimeStats { get; set; }
 
+        public PlayerController OwnerPlayer { get; set; }
+
+        [SerializeField]
+        public PlayerController _ownerPlayer;
+
         public HealthController HealthHandler;
 
         public virtual void Awake()
         {
+            SetPlayerReference(_ownerPlayer);
             HealthHandler = new HealthController();
             BuildingRuntimeStats = new BuildingRuntimeStats(BuildingStats);
         }
@@ -33,9 +36,13 @@ namespace Assets.Domain.Building
             HealthUIHandler.UpdateHealthBar(BuildingRuntimeStats.Health);
             if (BuildingRuntimeStats.Health <= 0)
             {
-                SelectionHandler.RemoveSelectableObject(this);
                 Destroy(gameObject);
             }
+        }
+
+        public void SetPlayerReference(PlayerController player)
+        {
+            OwnerPlayer = player;
         }
     }
 }

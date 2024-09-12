@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EdgePanSpeed: 160
   EdgePanBorder: 30
-  EdgePanLimit: {x: 200, y: 200}
+  EdgePanLimit: {x: 10, y: 10}
   ZoomSpeed: 200
   ZoomMiny: 5
   ZoomMaxy: 22

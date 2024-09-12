@@ -1,4 +1,5 @@
-﻿using Assets.Domain.Interfaces;
+﻿using Assets.Domain.Building.Economy;
+using Assets.Domain.Interfaces;
 using Domain.Globals;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,129 +9,42 @@ namespace Assets.Controller.Selection
     public class SelectionController : MonoBehaviour
     {
         [SerializeField]
-        public List<LayerMask> SelectableLayers;
+        public List<MonoBehaviour> SelectableMonobehaviors = new List<MonoBehaviour>();
 
-        [SerializeField]
-        public LayerMask GroundLayer;
-
-        [SerializeField]
-        public List<MonoBehaviour> SelectableObjects;
+        public List<ISelectable> SelectableObjects = new List<ISelectable>();
 
         public List<ISelectable> SelectedObjects { get; set; } = new List<ISelectable>();
 
-        private LayerMask combinedLayerMasks { get; set; }
-
-        private bool draggingSelection { get; set; }
-
-        private Vector3 dragStartPosition { get; set; }
-
-        private Rect dragSelectionRect { get; set; }
-
         public void Awake()
         {
-            combinedLayerMasks = CombineLayerMasks();
-        }
-
-        private LayerMask CombineLayerMasks()
-        {
-            LayerMask combinedLayerMask = 0;
-            foreach (LayerMask layerMask in SelectableLayers)
+            foreach (MonoBehaviour behavior in SelectableMonobehaviors)
             {
-                combinedLayerMask |= layerMask;
-            }
-            return combinedLayerMask;
-        }
-
-        private void OnGUI()
-        {
-            if (draggingSelection)
-            {
-                dragSelectionRect = GroupSelect.GetScreenBox(dragStartPosition, Input.mousePosition);
-                GroupSelect.DrawSelectionBox(dragSelectionRect, new Color(0f, 100f, 0f, .25f));
-                GroupSelect.DrawBoxBorder(dragSelectionRect, 3, Color.green);
+                SelectableObjects.Add(behavior as ISelectable);
             }
         }
 
-        public void Update()
-        {
-            HandleSelectionInput();
-        }
-
-        private void HandleSelectionInput()
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                dragStartPosition = Input.mousePosition;
-
-                if (HitSomethingInteractable(out ISelectable hitObject))
-                {
-                    SelectObject(hitObject);
-                }
-                else
-                {
-                    draggingSelection = true;
-                }
-            }
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                if (draggingSelection)
-                {
-                    SelectUnitsInDragArea();
-                }
-                dragStartPosition = Vector3.zero;
-                draggingSelection = false;
-            }
-        }
-
-        private bool HitSomethingInteractable(out ISelectable hitObject)
-        {
-            Ray ray = Camera.main.ScreenPointToRay(dragStartPosition);
-            RaycastHit hit;
-
-            Debug.DrawLine(ray.origin, ray.direction);
-
-            if (Physics.Raycast(ray, out hit, 100, combinedLayerMasks))
-            {
-                ISelectable selectable = hit.collider.GetComponent<ISelectable>(); // TODO: Change this
-                if (LayerIsInteractable(hit.collider.gameObject) && selectable != null)
-                {
-                    hitObject = selectable;
-                    return true;
-                }
-            }
-            hitObject = null;
-            return false;
-        }
-
-        private bool LayerIsInteractable(GameObject obj)
-        {
-            return (combinedLayerMasks == (combinedLayerMasks | (1 << obj.layer)));
-        }
-
-        private void SelectObject(ISelectable hitObject)
+        public void HandleSelectable(ISelectable hitObject)
         {
             if (!Input.GetKey(KeyCode.LeftShift))
             {
                 DeselectAll();
             }
-            if(!ObjectExistsInSelection(hitObject))
+            if (!ObjectExistsInSelection(hitObject))
             {
                 SelectedObjects.Add(hitObject);
             }
         }
 
-        private void SelectUnitsInDragArea()
+        public void SelectObjectsInBounds(Rect bounds)
         {
             if (!Input.GetKey(KeyCode.LeftShift))
             {
                 DeselectAll();
             }
 
-            foreach (MonoBehaviour obj in SelectableObjects)
+            foreach (ISelectable selectable in SelectableObjects)
             {
-                ISelectable selectable = obj as ISelectable;
-                if (ObjectIsWithinSelectionBounds(selectable, dragSelectionRect) && LayerIsInteractable(obj.gameObject))
+                if (ObjectIsWithinSelectionBounds(selectable, bounds))
                 {
                     if (!ObjectExistsInSelection(selectable))
                     {
@@ -158,8 +72,8 @@ namespace Assets.Controller.Selection
 
         public void RemoveSelectableObject(ISelectable selectable)
         {
-            SelectableObjects.Remove(selectable as MonoBehaviour);
-            if(SelectedObjects.Contains(selectable))
+            SelectableObjects.Remove(selectable);
+            if (SelectedObjects.Contains(selectable))
             {
                 SelectedObjects.Remove(selectable);
             }
@@ -167,10 +81,36 @@ namespace Assets.Controller.Selection
 
         public void AddSelectableToList(ISelectable selectable)
         {
-            if(!SelectableObjects.Contains(selectable as MonoBehaviour))
+            if (!SelectableObjects.Contains(selectable))
             {
-                SelectableObjects.Add(selectable as MonoBehaviour);
+                SelectableObjects.Add(selectable);
             }
+        }
+
+        public bool CheckObjectExistsInSelectable<T>(T type)
+        {
+            if (type is ISelectable selectable)
+            {
+                return SelectableObjects.Contains(selectable);
+            }
+            return false;
+        }
+
+        public ResourceDepot FindNearestResourceDepot(Vector3 workerPosition)
+        {
+            (ResourceDepot, float) closestDepot = (null, float.MaxValue);
+            foreach (ISelectable selectable in SelectableObjects)
+            {
+                if (selectable is ResourceDepot depot)
+                {
+                    float distanceToWorker = Vector3.Distance(workerPosition, depot.transform.position);
+                    if (distanceToWorker < closestDepot.Item2)
+                    {
+                        closestDepot = (depot, distanceToWorker);
+                    }
+                }
+            }
+            return closestDepot.Item1;
         }
     }
 }

@@ -15,37 +15,42 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     public InputController InputController;
 
+    [SerializeField]
+    private CommandController CommandManager;
+
     private void Awake()
     {
-        InputController.IssuedMovementCommand += MoveSelectedUnits;
+        InputController.IssuedRightClick += ReactToRightClick;
+        InputController.IssuedLeftClick += ReactToLeftClick;
         InputController.IssuedKeycodeCommand += CheckKeyInputOnSelections;
+        InputController.IssuedDragSelection += ReactToDragSelectionBounds;
     }
 
-    private void MoveSelectedUnits(Vector3 destination)
+    private void ReactToRightClick(Vector3 destination)
     {
-        foreach(ISelectable selectable in SelectionController.SelectedObjects)
-        {
-            if(selectable is IMoveable moveable)
-            {
-                moveable.MoveToLocation(destination);
-            }
-        }
+        CommandManager.ProcessRightClickHit(destination);
     }
-    
+
+    private void ReactToLeftClick(Vector3 destination)
+    {
+        CommandManager.ProcessLeftClickHit(destination);
+    }
+
     private void CheckKeyInputOnSelections(KeyCode pressedKey)
     {
-        foreach(ISelectable selectable in SelectionController.SelectedObjects)
-        {
-            if(selectable is IConstruction constructionObject)
-            {
-                constructionObject.CheckConstructionHotkey(pressedKey);
-            }
-        }
+        CommandManager.ProcessKeyStroke(pressedKey);
+    }
+
+    private void ReactToDragSelectionBounds(Rect bounds)
+    {
+        CommandManager.ProcessDragSelection(bounds);
     }
 
     private void OnDestroy()
     {
-        InputController.IssuedMovementCommand -= MoveSelectedUnits;
+        InputController.IssuedRightClick -= ReactToRightClick;
+        InputController.IssuedLeftClick -= ReactToLeftClick;
         InputController.IssuedKeycodeCommand -= CheckKeyInputOnSelections;
+        InputController.IssuedDragSelection -= ReactToDragSelectionBounds;
     }
 }

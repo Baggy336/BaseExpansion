@@ -1,18 +1,17 @@
-﻿using Assets.Controller.Resources;
+﻿using Assets.Controller;
+using Assets.Controller.Resources;
 using Assets.Core.Unit;
 using Assets.Core.Unit.Worker;
 using Assets.Domain.Building.Economy;
 using Assets.Domain.Globals.Enums;
+using Assets.Domain.Interfaces;
 using Assets.Domain.Resources;
 using UnityEngine;
 
 namespace Assets.Domain.Unit.PlayerUnits
 {
-    public class Worker : UnitBase
+    public class Worker : UnitBase, IResourceCollector
     {
-        [SerializeField]
-        public LayerMask ResourceLayer;
-
         [SerializeField]
         public WorkerBaseStats WorkerStats;
 
@@ -53,11 +52,11 @@ namespace Assets.Domain.Unit.PlayerUnits
         private void HandleResourceGathering()
         {
             TimeSinceLastHarvest += Time.deltaTime;
-            if (TargetResourceNode != null && WithinHarvestDistance() && WithinHarvestInterval(TimeSinceLastHarvest))
+            if (TargetResourceNode != null && WithinHarvestDistance() && WithinHarvestInterval(TimeSinceLastHarvest) && WorkerHasStorageCapacity())
             {
                 HarvestResource();
-                CheckCarryCapacity();
             }
+            CheckCarryCapacity();
         }
 
         private bool WithinHarvestDistance()
@@ -70,8 +69,18 @@ namespace Assets.Domain.Unit.PlayerUnits
             return timeSinceHarvest > WorkerStats.HarvestInterval;
         }
 
+        private bool WorkerHasStorageCapacity()
+        {
+            return WorkerStoredResources.ResourceStoredAmount < WorkerStats.CarryCapacity;
+        }
+
         private void HarvestResource()
         {
+            if(WorkerStoredResources.ResourceType != TargetResourceNode.ResourceNodeBase.ResourceType)
+            {
+                WorkerStoredResources.ResourceType = TargetResourceNode.ResourceNodeBase.ResourceType;
+                WorkerStoredResources.ResourceStoredAmount = 0;
+            }
             ResourceController.Instance.OnResourceHarvest.Invoke(TargetResourceNode, WorkerStats.HarvestYield);
             WorkerStoredResources.ResourceStoredAmount += WorkerStats.HarvestYield;
             TimeSinceLastHarvest = 0f;
@@ -79,7 +88,8 @@ namespace Assets.Domain.Unit.PlayerUnits
 
         private void CheckCarryCapacity()
         {
-            if (WorkerStoredResources.ResourceStoredAmount == WorkerStats.CarryCapacity)
+            if (WorkerStoredResources.ResourceStoredAmount >= WorkerStats.CarryCapacity
+             || WorkerStoredResources.ResourceStoredAmount + WorkerStats.HarvestYield > WorkerStats.CarryCapacity)
             {
                 WorkerState = WorkerStates.Depositing;
                 MoveToDepot();
@@ -112,92 +122,8 @@ namespace Assets.Domain.Unit.PlayerUnits
 
         public override void MoveToLocation(Vector3 location)
         {
-            if (CheckResourceNodeHit(location))
-            {
-                WorkerState = WorkerStates.Harvesting;
-                MoveToResource();
-            }
-            else if (CheckResourceDepotHit(location))
-            {
-                WorkerState = WorkerStates.Depositing;
-                MoveToDepot();
-            }
-            else
-            {
-                WorkerState = WorkerStates.None;
-                base.MoveToLocation(location);
-            }
-        }
-
-        private bool CheckResourceDepotHit(Vector3 location)
-        {
-            bool depotHit = false;
-            Collider[] hitColliders = Physics.OverlapSphere(location, 1f);
-            foreach (Collider hitCollider in hitColliders)
-            {
-                ResourceDepot depot = hitCollider.gameObject.GetComponent<ResourceDepot>();
-                if (SelectionHandler.SelectableObjects.Contains(depot))
-                {
-                    depotHit = true;
-                    HandleSelectedDepot(hitCollider);
-                    return true;
-                }
-            }
-
-            if (!depotHit)
-            {
-                TargetResourceNode = null;
-            }
-            return false;
-        }
-
-        private void HandleSelectedDepot(Collider hitCollider)
-        {
-            ResourceDepot resourceDepot = hitCollider.gameObject.GetComponent<ResourceDepot>();
-
-            if (resourceDepot != null)
-            {
-                SelectedResourceDepot = resourceDepot;
-            }
-        }
-
-        private bool CheckResourceNodeHit(Vector3 location)
-        {
-            bool resourceNodeHit = false;
-            Collider[] hitColliders = Physics.OverlapSphere(location, 1f);
-            foreach (Collider hitCollider in hitColliders)
-            {
-                if (((1 << hitCollider.gameObject.layer) & ResourceLayer) != 0)
-                {
-                    resourceNodeHit = true;
-                    HandleSelectedResource(hitCollider);
-                    return true;
-                }
-            }
-
-            if (!resourceNodeHit)
-            {
-                TargetResourceNode = null;
-            }
-            return false;
-        }
-
-        private void HandleSelectedResource(Collider hitCollider)
-        {
-            ResourceNodeRuntime resourceNode = hitCollider.gameObject.GetComponent<ResourceNodeRuntime>();
-
-            if (resourceNode != null)
-            {
-                if (TargetResourceNode != null)
-                {
-                    if (resourceNode.ResourceNodeBase.ResourceType != TargetResourceNode.ResourceNodeBase.ResourceType)
-                    {
-                        WorkerStoredResources.ResourceStoredAmount = 0;
-                    }
-                }
-                WorkerStoredResources.ResourceType = resourceNode.ResourceNodeBase.ResourceType;
-                TargetResourceNode = resourceNode;
-            }
+            WorkerState = WorkerStates.None;
+            base.MoveToLocation(location);
         }
 
         private void MoveToResource()
@@ -209,33 +135,23 @@ namespace Assets.Domain.Unit.PlayerUnits
         {
             if (SelectedResourceDepot == null)
             {
-                UpdateNearestDepot();
+                SelectedResourceDepot = GameController.Instance.GetPlayerEventSystem(OwnerPlayer).InvokeResourceCollectorNeedsDepot(this, transform.position, OwnerPlayer);
             }
-
-            if (SelectedResourceDepot != null)
-            {
-                base.MoveToLocation(SelectedResourceDepot.DepositLocation.position);
-            }
+            base.MoveToLocation(SelectedResourceDepot.DepositLocation.position);
         }
 
-        private void UpdateNearestDepot()
+        public void SetTargetResource(ResourceNodeRuntime resourceNode)
         {
-            ResourceDepot[] availableDepots = FindObjectsOfType<ResourceDepot>();
-            float nearestDistance = float.MaxValue;
+            TargetResourceNode = resourceNode;
+            WorkerState = WorkerStates.Harvesting;
+            MoveToResource();
+        }
 
-            foreach (ResourceDepot depot in availableDepots)
-            {
-                if (SelectionHandler.SelectableObjects.Contains(depot))
-                {
-                    float distanceToDepot = Vector3.Distance(depot.transform.position, transform.position);
-
-                    if (distanceToDepot < nearestDistance)
-                    {
-                        nearestDistance = distanceToDepot;
-                        SelectedResourceDepot = depot;
-                    }
-                }
-            }
+        public void SetDepositPoint(ResourceDepot resourceDepot)
+        {
+            SelectedResourceDepot = resourceDepot;
+            WorkerState = WorkerStates.Depositing;
+            MoveToDepot();
         }
     }
 }
