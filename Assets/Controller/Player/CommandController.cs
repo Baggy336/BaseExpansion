@@ -8,7 +8,6 @@ using Assets.Domain.Globals.Enums;
 using Assets.Controller.Selection;
 using Assets.Domain.Unit.Commands;
 using Assets.Domain.Building.Commands;
-using Assets.Core.Resources;
 using System.Linq;
 using System;
 
@@ -21,6 +20,9 @@ namespace Assets.Controller.Player
 
         [SerializeField]
         public SelectionController SelectionManager;
+
+        [SerializeField] 
+        private BuildingPlacementController BuildingPlacementManager;
 
         [SerializeField]
         public LayerMask GroundLayer;
@@ -89,6 +91,10 @@ namespace Assets.Controller.Player
                     }
                 }
             }
+            else if(BuildingPlacementManager.PlacingBuilding)
+            {
+                SetBuildingPlacement(location);
+            }
         }
 
         private bool TryGetHitObject(Vector3 location, out GameObject hitObject)
@@ -112,6 +118,11 @@ namespace Assets.Controller.Player
             {
                 SelectionManager.HandleSelectable(selectable);
             }
+        }
+
+        private void SetBuildingPlacement(Vector3 loaction)
+        {
+            BuildingPlacementManager.ConfirmBuildingPlacement(loaction);
         }
 
         private void HandleAttackable(GameObject hitObject, Component attackableComponent)

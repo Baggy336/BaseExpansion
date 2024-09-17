@@ -18,6 +18,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private CommandController CommandManager;
 
+    [SerializeField]
+    public BuildingPlacementController BuildingPlacementManager;
+
     private void Awake()
     {
         InputController.IssuedRightClick += ReactToRightClick;
@@ -33,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
     private void ReactToLeftClick(Vector3 destination)
     {
+
         CommandManager.ProcessLeftClickHit(destination);
     }
 

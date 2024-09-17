@@ -1,7 +1,9 @@
 ﻿using Assets.Controller.Player.Events;
+using Assets.Core.Building;
 using Assets.Domain.Building.Economy;
 using Assets.Domain.Interfaces;
 using Assets.Domain.Player;
+using Assets.Domain.Unit.PlayerUnits;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -41,6 +43,7 @@ namespace Assets.Controller
                 PlayerEvents playerEventHandler = new PlayerEvents();
                 playerEventHandler.OnSelectableCreated += RegisterSelectable;
                 playerEventHandler.ResourceCollectorNeedsDepot += FindNearestResourceDepot;
+                playerEventHandler.OnBuildingPlacementStarted += BeginBuildingPlacementMode;
                 PlayerDomain playerDomain = new PlayerDomain()
                 {
                     Player = player,
@@ -59,6 +62,11 @@ namespace Assets.Controller
         private ResourceDepot FindNearestResourceDepot(IResourceCollector worker, Vector3 workerPosition, PlayerController player)
         {
             return player.SelectionController.FindNearestResourceDepot(workerPosition);
+        }
+
+        private void BeginBuildingPlacementMode(Worker worker, PlayerController player, BuildingConstructionCost building)
+        {
+            player.BuildingPlacementManager.StartBuildingPlacement(worker, building);
         }
 
         public PlayerEvents GetPlayerEventSystem(PlayerController player)

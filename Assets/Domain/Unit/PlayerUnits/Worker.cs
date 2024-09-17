@@ -1,25 +1,34 @@
 ﻿using Assets.Controller;
 using Assets.Controller.Resources;
+using Assets.Core;
+using Assets.Core.Building;
 using Assets.Core.Unit;
 using Assets.Core.Unit.Worker;
+using Assets.Domain.Building;
 using Assets.Domain.Building.Economy;
 using Assets.Domain.Globals.Enums;
 using Assets.Domain.Interfaces;
 using Assets.Domain.Resources;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Domain.Unit.PlayerUnits
 {
-    public class Worker : UnitBase, IResourceCollector
+    public class Worker : UnitBase, IResourceCollector, IConstruction
     {
         [SerializeField]
         public WorkerBaseStats WorkerStats;
+
+        [SerializeField]
+        public List<ConstructionCost> BuildableObjects;
 
         private ResourceNodeRuntime TargetResourceNode { get; set; }
 
         private WorkerResourceBank WorkerStoredResources { get; set; }
 
         private ResourceDepot SelectedResourceDepot { get; set; }
+
+        private CurrentBuildingConstruction ConstructionInfo { get; set; }
 
         private WorkerStates WorkerState { get; set; }
 
@@ -44,6 +53,12 @@ namespace Assets.Domain.Unit.PlayerUnits
                     break;
                 case WorkerStates.Depositing:
                     HandleResourceDeposit();
+                    break;
+                case WorkerStates.MovingToBuild:
+                    HandleMovingToBuild();
+                    break;
+                case WorkerStates.Building:
+                    HandleConstruction();
                     break;
             }
             base.Update();
@@ -152,6 +167,78 @@ namespace Assets.Domain.Unit.PlayerUnits
             SelectedResourceDepot = resourceDepot;
             WorkerState = WorkerStates.Depositing;
             MoveToDepot();
+        }
+
+        public void CheckConstructionHotkey(KeyCode keyCode)
+        {
+            foreach (ConstructionCost construction in BuildableObjects)
+            {
+                if (construction.Hotkey == keyCode)
+                {
+                    if(construction is BuildingConstructionCost building)
+                    {
+                        GameController.Instance.GetPlayerEventSystem(OwnerPlayer).InvokeBuildingPlacement(this, OwnerPlayer, building);
+                    }
+                }
+            }
+        }
+
+        public void ConfirmConstruction(Vector3 position, BuildingConstructionCost building)
+        {
+            if(CheckPlayerHasResources(building))
+            {
+                SetNewConstructionInfo(position, building);
+                WorkerState = WorkerStates.MovingToBuild;
+                MoveToBuild();
+            }
+        }
+
+        private bool CheckPlayerHasResources(ConstructionCost construction)
+        {
+            return OwnerPlayer.PlayerBank.TryWithdrawResource(construction.CostToConstruct);
+        }
+
+        private void SetNewConstructionInfo(Vector3 position, BuildingConstructionCost building)
+        {
+            ConstructionInfo = new CurrentBuildingConstruction(position, building);
+            ConstructionInfo.CurrentBuildingInstance = Instantiate(building.ConstructionPreview, position, Quaternion.identity);
+            ConstructionInfo.CurrentBuildingProductionUI.SetProgressBarActive(ConstructionInfo.ProductionTimer);
+        }
+
+        private void MoveToBuild()
+        {
+            base.MoveToLocation(ConstructionInfo.CurrentBuildingInstance.transform.position);
+        }
+
+        private void HandleMovingToBuild()
+        {
+            if(WorkerIsWithinBuildDistance(ConstructionInfo.CurrentBuildingInstance))
+            {
+                WorkerState = WorkerStates.Building;
+            }
+        }
+
+        private bool WorkerIsWithinBuildDistance(GameObject buildingInstance)
+        {
+            return Vector3.Distance(buildingInstance.transform.position, transform.position) < WorkerStats.HarvestDistance;
+        }
+
+        private void HandleConstruction()
+        {
+            ConstructionInfo.ProductionTimer -= Time.deltaTime;
+            ConstructionInfo.CurrentBuildingProductionUI.UpdateProgressBar(ConstructionInfo.ProductionTimer);
+            if (ConstructionInfo.ProductionTimer <= 0f)
+            {
+                FinishBuildingConstruction();
+            }
+        }
+
+        private void FinishBuildingConstruction()
+        {
+            Destroy(ConstructionInfo.CurrentBuildingInstance);
+            GameObject building = Instantiate(ConstructionInfo.BuildingToConstruct, ConstructionInfo.CurrentBuildingInstance.transform.position, Quaternion.identity);
+            GameController.Instance.GetPlayerEventSystem(OwnerPlayer).InvokeSelectableCreated(building.GetComponent<ISelectable>(), OwnerPlayer);
+            WorkerState = WorkerStates.None;
         }
     }
 }

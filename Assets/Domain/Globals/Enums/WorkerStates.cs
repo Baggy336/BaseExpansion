@@ -4,6 +4,8 @@
     {
         None,
         Harvesting, 
-        Depositing
+        Depositing,
+        MovingToBuild,
+        Building
     }
 }
