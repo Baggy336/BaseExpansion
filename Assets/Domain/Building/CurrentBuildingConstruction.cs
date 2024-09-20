@@ -20,8 +20,20 @@ namespace Assets.Domain.Building
         {
             CurrentBuildingInstance = building.ConstructionPreview;
             BuildingToConstruct = building.ConstructedObject;
+            LocationToCreateBuilding = GetPlacementLocation(position);
+            ProductionTimer = building.ConstructionTime;
+        }
+
+        private Vector3 GetPlacementLocation(Vector3 position)
+        {
+            Renderer buildingRenderer = BuildingToConstruct.GetComponent<Renderer>();
+            position.y = (buildingRenderer.bounds.size.y / 2) + .25f;
+            return position;
+        }
+
+        public void SetProductionUI()
+        {
             CurrentBuildingProductionUI = CurrentBuildingInstance.GetComponent<ProductionUIController>();
-            LocationToCreateBuilding = position;
         }
     }
 }

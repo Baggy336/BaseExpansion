@@ -16,7 +16,7 @@ namespace Assets.Domain.Resources
 
         public bool HasEnoughResources(int amountToTake)
         {
-            return ResourceStoredAmount - amountToTake > 0;
+            return ResourceStoredAmount - amountToTake >= 0;
         }
 
         public void WithrawAmount(int amountToTake)

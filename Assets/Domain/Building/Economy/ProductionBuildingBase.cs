@@ -2,7 +2,6 @@
 using Assets.Controller.Building.UI;
 using Assets.Core;
 using Assets.Domain.Interfaces;
-using Assets.Domain.Player;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,9 +11,6 @@ namespace Assets.Domain.Building.Economy
     {
         [SerializeField]
         public List<ConstructionCost> BuildableObjects;
-
-        [SerializeField]
-        public PlayerBankRuntime PlayerBank;
 
         [SerializeField]
         public ProductionUIController ProductionUI;
@@ -102,7 +98,7 @@ namespace Assets.Domain.Building.Economy
 
         private bool CheckPlayerHasResources(ConstructionCost construction)
         {
-            return PlayerBank.TryWithdrawResource(construction.CostToConstruct);
+            return OwnerPlayer.PlayerBank.TryWithdrawResource(construction.CostToConstruct);
         }
     }
 }

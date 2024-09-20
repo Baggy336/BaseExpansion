@@ -21,7 +21,7 @@ namespace Assets.Controller.Player
         [SerializeField]
         public SelectionController SelectionManager;
 
-        [SerializeField] 
+        [SerializeField]
         private BuildingPlacementController BuildingPlacementManager;
 
         [SerializeField]
@@ -81,19 +81,22 @@ namespace Assets.Controller.Player
         {
             if (TryGetHitObject(location, out GameObject hitObject))
             {
-                foreach (ITypeInputAction action in InteractionHandlers)
+                if (BuildingPlacementManager.PlacingBuilding)
                 {
-                    Type componentType = action.GetType().GetGenericArguments()[0];
-                    if (hitObject.TryGetComponent(componentType, out Component component) && action.ClickType == MouseButton.Left)
+                    SetBuildingPlacement(location);
+                }
+                else
+                {
+                    foreach (ITypeInputAction action in InteractionHandlers)
                     {
-                        action.Invoke(hitObject, component);
-                        return;
+                        Type componentType = action.GetType().GetGenericArguments()[0];
+                        if (hitObject.TryGetComponent(componentType, out Component component) && action.ClickType == MouseButton.Left)
+                        {
+                            action.Invoke(hitObject, component);
+                            return;
+                        }
                     }
                 }
-            }
-            else if(BuildingPlacementManager.PlacingBuilding)
-            {
-                SetBuildingPlacement(location);
             }
         }
 
@@ -191,7 +194,7 @@ namespace Assets.Controller.Player
             {
                 Type actionType = action.GetType().GetGenericArguments()[0];
 
-                List<ISelectable> selectedObjectsToRespondToKey = SelectionManager.SelectableObjects.Where(x => actionType.IsAssignableFrom(x.GetType())).ToList();
+                List<ISelectable> selectedObjectsToRespondToKey = SelectionManager.SelectedObjects.Where(x => actionType.IsAssignableFrom(x.GetType())).ToList();
 
                 foreach (ISelectable selectedObject in selectedObjectsToRespondToKey)
                 {

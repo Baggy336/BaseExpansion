@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac89720fab17ab64682766423adb4044, type: 3}
+  m_Name: ResourceDepotCost
+  m_EditorClassIdentifier: 
+  CostToConstruct:
+  - ResourceType: 1
+    Cost: 400
+  ConstructedObject: {fileID: 8996475058668913645, guid: 8dbd370603d88f74b90fd81a69b581b7, type: 3}
+  ConstructionTime: 20
+  Hotkey: 98
+  ConstructionPreview: {fileID: 2890612580292531570, guid: 3ec379db5a0d1b94397429d0aaf4bc2f, type: 3}

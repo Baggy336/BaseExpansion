@@ -201,7 +201,9 @@ namespace Assets.Domain.Unit.PlayerUnits
         private void SetNewConstructionInfo(Vector3 position, BuildingConstructionCost building)
         {
             ConstructionInfo = new CurrentBuildingConstruction(position, building);
-            ConstructionInfo.CurrentBuildingInstance = Instantiate(building.ConstructionPreview, position, Quaternion.identity);
+            GameObject buildingPreview = Instantiate(building.ConstructionPreview, ConstructionInfo.LocationToCreateBuilding, Quaternion.identity);
+            ConstructionInfo.CurrentBuildingInstance = buildingPreview;
+            ConstructionInfo.SetProductionUI();
             ConstructionInfo.CurrentBuildingProductionUI.SetProgressBarActive(ConstructionInfo.ProductionTimer);
         }
 
@@ -236,7 +238,7 @@ namespace Assets.Domain.Unit.PlayerUnits
         private void FinishBuildingConstruction()
         {
             Destroy(ConstructionInfo.CurrentBuildingInstance);
-            GameObject building = Instantiate(ConstructionInfo.BuildingToConstruct, ConstructionInfo.CurrentBuildingInstance.transform.position, Quaternion.identity);
+            GameObject building = Instantiate(ConstructionInfo.BuildingToConstruct, ConstructionInfo.LocationToCreateBuilding, Quaternion.identity);
             GameController.Instance.GetPlayerEventSystem(OwnerPlayer).InvokeSelectableCreated(building.GetComponent<ISelectable>(), OwnerPlayer);
             WorkerState = WorkerStates.None;
         }

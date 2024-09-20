@@ -20,7 +20,7 @@ namespace Assets.Domain.Building.Economy
 
         public void DepositResource(ResourceTypes resourceType, int amount)
         {
-            PlayerBank.DepositResource(resourceType, amount);
+            OwnerPlayer.PlayerBank.DepositResource(resourceType, amount);
         }
     }
 }
